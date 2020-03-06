@@ -30,20 +30,6 @@ public class MainPanel extends JPanel {
 		return _cells;
 	}
 
-	private int convertToInt(int x) {
-		int c = 0;
-		String padding = "0";
-		while (c < _r) {
-			String l = new String("0");
-			padding += l;
-			c++;
-		}
-
-		String n = padding + String.valueOf(x);
-		int q = Integer.parseInt(n);
-		return q;
-	}
-
 	private int getNumNeighbors(int x, int y) {
 		int size = _size;
 		int leftX = (x - 1) % size;
@@ -91,29 +77,38 @@ public class MainPanel extends JPanel {
 			numNeighbors++;
 		}
 
-		return convertToInt(numNeighbors);
+		return numNeighbors;
 
 	}
 
-	private boolean iterateCell(int x, int y) {
-		boolean toReturn = false;
+	public boolean iterateCell(int x, int y) {
+		String toReturn = "false";
 		boolean alive = _cells[x][y].getAlive();
 		int numNeighbors = getNumNeighbors(x, y);
 		if (alive) {
 			if (numNeighbors < 2 || numNeighbors > 3) {
-				toReturn = false;
+				toReturn = "false";
 			} else {
-				toReturn = true;
+				toReturn = "true";
 			}
 		} else {
 			if (numNeighbors == 3) {
-				toReturn = true;
+				toReturn = "true";
 			} else {
-				toReturn = false;
+				toReturn = "false";
 			}
 		}
-		return toReturn;
-
+		
+		int c = 0;
+		String padding = "0";
+		while (c < _r * 10) {
+			String l = new String("0");
+			padding += l;
+			c++;
+		}
+		toReturn = padding + toReturn;
+	
+		return Boolean.parseBoolean(toReturn.substring(padding.length()));
 	}
 
 	private void displayIteration(boolean[][] nextIter) {
