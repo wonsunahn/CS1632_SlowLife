@@ -30,7 +30,7 @@ public class MainPanel extends JPanel {
 		return _cells;
 	}
 
-	private int getNumNeighbors(int x, int y) {
+	public int getNumNeighbors(int x, int y) {
 		int size = _size;
 		int leftX = (x - 1) % size;
 		int rightX = (x + 1) % size;
@@ -111,8 +111,7 @@ public class MainPanel extends JPanel {
 		return Boolean.parseBoolean(toReturn.substring(padding.length()));
 	}
 
-	private void displayIteration(boolean[][] nextIter) {
-		System.out.println("\tDisplaying...");
+	public void displayIteration(boolean[][] nextIter) {
 		for (int j = 0; j < _size; j++) {
 			for (int k = 0; k < _size; k++) {
 				_cells[j][k].setAlive(nextIter[j][k]);
@@ -127,7 +126,6 @@ public class MainPanel extends JPanel {
 	 */
 
 	public void calculateNextIteration() {
-		System.out.println("\tCalculating..");
 		boolean[][] nextIter = new boolean[_size][_size];
 		for (int j = 0; j < _size; j++) {
 			for (int k = 0; k < _size; k++) {
