@@ -38,9 +38,8 @@ public class GameOfLifePinningTest {
 		 * pattern shown in:
 		 * https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Examples_of_patterns
 		 * The actual pattern GIF is at:
-		 * https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#/media/File:
-		 * Game_of_life_blinker.gif Start from the vertical bar on a 5X5 matrix as shown
-		 * in the GIF.
+		 * https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#/media/File:Game_of_life_blinker.gif
+		 * Start from the vertical bar on a 5X5 matrix as shown in the GIF.
 		 */
 	}
 

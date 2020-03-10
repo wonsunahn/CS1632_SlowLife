@@ -136,7 +136,7 @@ public class MainPanel extends JPanel {
 			_r += (i % _size) % _maxCount;
 			_r += _maxCount;
 		}
-		_r %= _size;
+		_r = 1000;
 
 		displayIteration(nextIter);
 	}
@@ -238,7 +238,6 @@ public class MainPanel extends JPanel {
 	public void runContinuous() {
 		_running = true;
 		while (_running) {
-			System.out.println("Running...");
 			try {
 				Thread.sleep(20);
 			} catch (InterruptedException iex) {
