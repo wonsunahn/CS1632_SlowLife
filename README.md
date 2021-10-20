@@ -1,4 +1,4 @@
-- [CS 1632 - Software Quality Assurance](#cs-1632---software-quality-assurance)
+- [CS 1632 - Software Quality Assurance](#cs-1632-software-quality-assurance)
   * [Description](#description)
   * [How to Run SlowLifeGUI](#how-to-run-slowlifegui)
   * [What do do](#what-do-do)
@@ -13,11 +13,11 @@
   * [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Summer Semester 2021
+Fall Semester 2021
 
-DUE: July 26 (Monday), 2021 06:30 PM
+DUE: Nov 8 (Monday), 2021 09:30 AM
 
-**GitHub Classroom Link:** https://classroom.github.com/g/ZEJ0n6sZ
+**GitHub Classroom Link:** TBD
 
 ## Description
 
@@ -201,6 +201,9 @@ the file is at ReportTemplate.pdf.  Please keep the page separation.
 
 The report should have a title page with:
 * Your name(s)
+
+ON YOUR FIRST PAGE, please write a brief introduction on any issues you may
+have had with VisualVM and also a division of work between partners.
 
 ON A SEPARATE PAGE, write a brief report on the first feature you optimized.
 Write the name of the feature, the methods you refactored, and a VisualVM
