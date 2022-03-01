@@ -13,11 +13,11 @@
   * [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Fall Semester 2021
+Spring Semester 2022
 
-DUE: Nov 8 (Monday), 2021 09:30 AM
+DUE: Mar 29 (Tuesday), 2022 01:00 PM
 
-**GitHub Classroom Link:** https://classroom.github.com/a/O_WUEwwr
+**GitHub Classroom Link:** TBD
 
 ## Description
 
