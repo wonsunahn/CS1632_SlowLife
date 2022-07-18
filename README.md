@@ -13,9 +13,9 @@
   * [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Spring Semester 2022
+Summer Semester 2022
 
-DUE: Mar 29 (Tuesday), 2022 01:00 PM
+DUE: August 2 (Tuesday), 2022 11:30 AM
 
 **GitHub Classroom Link:** TBD
 
@@ -25,7 +25,8 @@ For this assignment, your group will profile a Conway's Game of Life
 simulation, and improve its performance by refactoring several methods (to be
 determined by the results of the profiling).  The program is assumed to be
 functionally correct.  It's only problem is that certain features are too slow.
-This will consist of the following steps for each method:
+This will consist of the following steps for each method, as we discussed in
+Exercise 4:
 
 1. Profiling to determine the most CPU-intensive method that is suboptimal.
 1. Adding method pinning tests to guard against unintended changes to functionality.
@@ -37,24 +38,27 @@ The code is available under the src/ directory.
 
 ## How to Run SlowLifeGUI
 
-1. Running GameOfLife. For Windows do (for running SlowLifeGUI with argument 5):
-    ```
-    run.bat 5
-    ```
-    For Mac / Linux do (for running SlowLifeGUI with argument 5):
-    ```
-    bash run.sh 5
-    ```
-1. Running the TestRunner on GameOfLifePinningTest. For Windows do:
-    ```
-    runTest.bat
-    ```
-    For Mac / Linux do:
-    ```
-    bash runTest.sh
-    ```    
+First let's invoke the Maven compile phase to generate the class files:
 
-Alternatively, I've created an Eclipse project for you so you can use Eclipse to import the existing project.
+```
+mvn compile
+```
+
+Then let's invoke the GameOfLife main method as such:
+
+```
+java -cp target/classes edu.pitt.cs.GameOfLife 10
+```
+
+The argument 10 is the dimensions of the world to generate.  This will generate
+a matrix of 10 X 10 cells.
+
+Now if you want to test the implementation using GameOfLifePinningTest.java,
+you can invoke the Maven test phase as before:
+
+```
+mvn test
+```
 
 ## What do do
 
@@ -75,10 +79,7 @@ There are several other buttons which invoke different features:
 6. Load - This will load a previously-saved backup file (created using the Write button) to the current world.
 7. Clear - This will clear the current world.
 
-The application accepts one command line argument, specifying the size of the
-world (e.g., if you enter 10, then you will create a 10 x 10 world).
-
-### Task 1: Profiling using VisualVM
+### Task 1: Profile using VisualVM
 
 For the purposes of performance testing, we will focus on a 5 X 5 world.  For
 the initial pattern, we will use the "blinker" pattern shown in:  
@@ -89,42 +90,66 @@ The actual pattern GIF is at:
 
 https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#/media/File:Game_of_life_blinker.gif  
 
-We will start from the vertical bar on a 5X5 matrix as shown in the GIF.
-
-For an actual full performance test suite, we would have to try multiple world
+We will start from the vertical bar on a 5 X 5 matrix as shown in the GIF: For
+an actual full performance test suite, we would have to try multiple world
 sizes and multiple patterns but for the purposes of this deliverable, we will
 focus on performance debugging only the above scenario.  As it happens, once we
 debug the above scenario, the application will start running quickly for all
 scenarios.
 
+Let's start by creating a 5 X 5 world:
+
+```
+java -cp target/classes edu.pitt.cs.GameOfLife 5
+```
+
+Now click on the appropriate cells to create the vertical bar pattern.
+
 There are exactly **THREE** major performance issues with **THREE** methods in
 the code.  They could be in any feature of the program!  I recommend you try
 exploratory testing to try out different features to determine which features
 may have performance problems before profiling the application.  There are
-**TWO** features that have problems (that is, two buttons).  The three
+**TWO** features that have problems out of the 6 features listed above (if you
+count "Run" and "Run Continuous" as the same feature).  Each feature can be
+invoked by pressing the corresponding button at the bottom panel.  The three
 performance problems are dispersed in those two features.
 
 In order to determine the "hot spots" of the application, you will need to run
-a profiler such as VisualVM (download at https://visualvm.github.io/).  Using a
-profiler, determine the THREE methods you can modify to measurably increase the
-speed of the application without modifying behavior.  Refer to Exercise 4 for a
-detailed explanation of how to use VisualVM to profile an application.
+VisualVM.  Using the profiler, determine the THREE methods you can modify to
+measurably increase the speed of the application without modifying behavior.
+Refer to Exercise 4 for a detailed explanation of how to use VisualVM to
+profile an application.
 
-Now there is one more step that you have to do on VisualVM you did not have to do in
-Exercise 4: you need to replace "GameOfLife" with "*" in the "Profile classes:"
-window on the right before pressing on the "CPU" button to start profiling.
-This instructs VisualVM to instrument not only the GameOfLife class (the class with the
-main method), but all classes in the application.  You did not need to do this
-for the Exercise 4 MonkeySim application because it was single-threaded
-application.  All code in a single-threaded application execute starting from
-the main method, so the default behavior of VisualVM to instrument starting
-from the main method class was just fine.  GameOfLife is a GUI application and
-in a Java GUI application, there are multiple event handler threads running in
-the background to handle events like button presses concurrently with the
-application.  In this case, the code for these threads do not start from the
-main method.
+There are two things you have to do differently form Exercise 4, however:
 
-### Task 2: Writing Pinning Tests for the Three Methods
+1. You need to replace "GameOfLife" with "*" (wild card) in the "Profile
+   classes:" window on the right before pressing on the "CPU" button to start
+profiling.  This instructs VisualVM to instrument not only the GameOfLife class
+(the class with the main method), but all classes in the application.  You did
+not need to do this for the Exercise 4 MonkeySim application because it was
+single-threaded application.  All code in a single-threaded application execute
+starting from the main method, so the default behavior of VisualVM to
+instrument starting from the main method class was just fine.  GameOfLife is a
+GUI application and in a Java GUI application, there are multiple event handler
+threads running in the background to handle events like button presses
+concurrently with the application.  In this case, the code for these threads do
+not start from the main method.
+
+1. You need to collect profiles for each individual feature.  For Exercise 4,
+   the only feature was to run MonkeySim from the commandline.  In this
+application, there are 6 different features you need to test.  If you take a
+snapshot of the profile at the very end of execution after having tried out all
+6 features, just like you did for the exercise, you will not be able to tell
+which feature has a performance problem.  Instead, create 6 individual
+snapshots for the 6 features and analyze them separately.  Once you are done
+profiling a feature, press the "Reset" button on VisualVM to clear the profile
+before moving on to the next feature.  You should be able to find the 2
+problematic features relatively easily (the slow methods have pretty glaring
+performance problems).  Save the hot spots list for each of the two features in
+these two files: **hotspots-feature1-before.png** and
+**hotspots-feature2-before.png**.
+
+### Task 2: Write Pinning Tests for the Three Methods
 
 Before doing refactoring any method, you should create "pinning tests" (as
 described in the section on legacy code earlier - please review the slides on
@@ -175,14 +200,7 @@ refactored methods.  Hint: there is no reason for you to create a GameOfLife
 object as there are no methods that you need to refactor there.
 
 You will write all your pinning tests in the class GameOfLifePinningTest by
-completing the TODOs.  Please heed the comments.  Just like for Deliverable 2,
-you can add a Java stack trace to the error message to get information about
-why your tests are failing by inserting the following line below
-TestRunner.java line 24:
-
-```
-System.out.println(f.getTrace());
-```
+completing the TODOs.  Please heed the comments.  
 
 ### Task 3: Refactor the Three Methods
 
@@ -190,6 +208,12 @@ Now refactor the three methods so that they are no longer performance problems.
 If you look carefully, the three methods do a lot of wasted work for no reason.
 It should be easy to refactor my removing that work.  Make sure that your
 pinning tests pass after refactoring.
+
+### Task 4: Rerun Profiles for the Three Methods
+
+Save the hot spots list for each of the two optimized features in these two
+files: **hotspots-feature1-after.png** and **hotspots-feature2-after.png**.
+You should see a significant improvement over the initial profile.
 
 ## Report Format
 
@@ -221,10 +245,10 @@ methods, another feature has one problematic method.
 
 ## Grading
 * Report - 10%
-* My performance tests pass (autograder) - 45%
-* My pinning tests pass (autograder) - 15%
-* Your pinning tests pass (autograder) - 15%
-* Your pinning tests are written correctly - 15%
+* Performance tests on your optimized methods (autograder) - 45%
+* Pinning tests on your optimized methods (autograder) - 15%
+* Your pinning tests against your implementation (autograder) - 15%
+* Whether you implemnted your pinning tests correctly (manual grading with autograder feedback) - 15%
 
 Please read [grading_rubric.txt](grading_rubric.txt) before submitting!
 
