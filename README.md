@@ -2,20 +2,22 @@
   * [Description](#description)
   * [How to Run SlowLifeGUI](#how-to-run-slowlifegui)
   * [What do do](#what-do-do)
-    + [Task 1: Profiling using VisualVM](#task-1-profiling-using-visualvm)
-    + [Task 2: Writing Pinning Tests for the Three Methods](#task-2-writing-pinning-tests-for-the-three-methods)
+    + [Task 1: Profile using VisualVM](#task-1-profile-using-visualvm)
+    + [Task 2: Write Pinning Tests for the Three Methods](#task-2-write-pinning-tests-for-the-three-methods)
     + [Task 3: Refactor the Three Methods](#task-3-refactor-the-three-methods)
+    + [Task 4: Rerun Profiles for the Three Methods](#task-4-rerun-profiles-for-the-three-methods)
   * [Report Format](#report-format)
-  * [Grading](#grading)
-  * [Submission](#submission)
-  * [GradeScope Feedback](#gradescope-feedback)
-  * [Groupwork Plan](#groupwork-plan)
-  * [Resources](#resources)
+- [Grading](#grading)
+- [Submission](#submission)
+- [GradeScope Feedback](#gradescope-feedback)
+- [Groupwork Plan](#groupwork-plan)
+- [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
 Summer Semester 2022
 
-DUE: August 2 (Tuesday), 2022 11:30 AM
+* DUE: August 2 (Tuesday), 2022 11:30 AM
+* Last day of late submission: August 5, 2022 11:30 AM
 
 **GitHub Classroom Link:** TBD
 
@@ -217,10 +219,9 @@ You should see a significant improvement over the initial profile.
 
 ## Report Format
 
-Please use the ReportTemplate.docx file provided in this directory to write
-your report.  If you don't have a .docx compatible word processor, that's
-perfectly fine as long as you follow the same organization.  A PDF version of
-the file is at ReportTemplate.pdf.  Please keep the page separation.
+Please use the [ReportTemplate.docx](ReportTemplate.docx) file provided in this
+directory to write a short report.  A PDF version of the file is at
+[ReportTemplate.pdf](ReportTemplate.pdf).
 
 The report should have a title page with:
 * Your name(s)
@@ -230,20 +231,13 @@ have had with VisualVM and also a division of work between partners.
 
 ON A SEPARATE PAGE, write a brief report on the first feature you optimized.
 Write the name of the feature, the methods you refactored, and a VisualVM
-screenshot of method "Hot spots" *after* the refactoring.  Please only include
-the "Hot spots" window in the interest of space.  Please refer to Exercise 4 on
-how the Hot spots window looks like.
+export of method "Hot spots" before and after refactoring.  Please refer to
+Exercise 4 on how the Hot spots export file looks like.
 
-ON A SEPARATE PAGE, write a brief report on the second feature you optimized.
-Write the name of the feature, the methods you refactored, and a VisualVM
-screenshot of method "Hot spots" *after* the refactoring.  Please take care not
-to click on any other feature while profiling (including the first feature).
+ON A SEPARATE PAGE, do the same for the second feature optimized.
 
-There are two features with performance problems as I mentioned (as in two
-buttons).  Make sure you include both of them.  One feature has two problematic
-methods, another feature has one problematic method.
+# Grading
 
-## Grading
 * Report - 10%
 * Performance tests on your optimized methods (autograder) - 45%
 * Pinning tests on your optimized methods (autograder) - 15%
@@ -257,7 +251,7 @@ autograding.  However, adjustments to your autograded score may follow if you
 make a bad faith attempt at tricking the autograder (e.g. write a pinning test
 that does not properly test the method you are refactoring).
 
-## Submission
+# Submission
 
 Each pairwise group will do one submission to GradeScope as usual.  The
 submitting member must use the "View or edit group" link at the top-right
@@ -271,9 +265,9 @@ GradeScope will run the autograder to grade you and give feedback.  If you get
 deductions, fix your code based on the feedback and resubmit.  Repeat until you
 don't get deductions.
 
-1. Submit your report to GradeScope at the "Deliverable 4 Report" link.
+1. Submit your report to GradeScope at the **Deliverable 4 Report** link.
 
-## GradeScope Feedback
+# GradeScope Feedback
 
 It is encouraged that you submit to GradeScope early and often.  Please use the
 feedback you get on each submission to improve your code!
@@ -305,7 +299,12 @@ implementation.  If any of the pinning tests fail, you get a -5 deduction.
 behavior verification.  It does three test runs using your
 GameOfLifePinningTest:
 
-   1) Output on correct program: GameOfLifePinningTest tested on a defect-free implementation.  The expected output is:
+   1) Output after injecting bug into real object: Since a real object used in
+your test becomes buggy, the test case that uses that real object should fail.
+
+   2) Output after injecting bug into mocked object: Since the code in a mocked
+object is not exercised, the injected bug should have no effect and again, the
+expected output is:
 
       ```
       --------------------------------------------------------------------
@@ -313,46 +312,69 @@ GameOfLifePinningTest:
       --------------------------------------------------------------------
       ```
 
-   2) Output after injecting bug into real object: GameOfLifePinningTest tested on GameOfLifeBuggy.jar with a bug injected into a real object.  Since a real object used in your test becomes buggy, the test case that uses that real object should fail.
+   3) Output after injecting bug in method checked by behavior verification:
+The method that does behavior verification should fail.
 
-   3) Output after injecting bug into mocked object: GameOfLifePinningTest tested on GameOfLifeBuggy.jar with a bug injected into a mocked object.  Since the code in a mocked object is not exercised, the injected bug should have no effect and again, the expected output is:
+      If all goes well, you should see the followimg lines at the end of this section:
 
       ```
-      --------------------------------------------------------------------
-      ALL TESTS PASSED
-      --------------------------------------------------------------------
+      PASSED (5/5): Bug injected into real object caused test failures (as it should).
+      PASSED (5/5): Bug injected into mocked object did not cause test failures.
+      PASSED (5/5): Behavior verification correctly detected change in behavior.
       ```
 
-   4) Output after injecting bug in method checked by behavior verification: GameOfLifePinningTest tested on GameOfLifeBuggy.jar with a bug injected into a method that can only be tested using behavior verification.  The method that does behavior verification should fail.
+      If you see FAILED (0/5) instead, you need to fix your tests.  The buggy
+implementation with the injected bugs has been included in the repository if
+you want to see what the bugs are with your own eyes (see below).
 
-   If all goes well, you should see the followimg lines at the end of this section:
-
-   ```
-   PASSED (5/5): Bug injected into real object caused test failures (as it should).
-   PASSED (5/5): Bug injected into mocked object did not cause test failures.
-   PASSED (5/5): Behavior verification correctly detected change in behavior.
-   ```
-
-   If you see FAILED instead, you need to fix your tests.  GameOfLifeBuggy.jar
-is included in the repository if you want to do further testing.  Try running
-runBuggyReal.bat, runBuggyMock.bat, and runBuggyBehavior.bat to execute the JAR
-file with real object, mocked object, and behavior verification method bug
-injection respectively (Mac/Linux users can run the *.sh versions).  If you try
-the vertical bar blinker patter specified on GameOfLifePinningTest.java, you
-will see that each version is defective in its own way.  You can also try
-running your GameOfLifePinningTest on the buggy implementation using
-runTestBuggyReal.bat, runTestBuggyMock.bat and runTestBuggyBehavior.bat for the
-three bug injections.  You will see the same output given on the GradeScope
-feedback.
-
-   Just because you got PASSED on all three, it does not mean that you are
-guaranteed to get points for that rubric item.  You may have passed simply
+      CAVEAT: Just because you got PASSED on all three, it does not mean that you
+are guaranteed to get points for that rubric item.  You may have passed simply
 because you did not yet write the relevant test!  So in the end, points will be
 assigned through manual grading (hence the 0 points assigned in the
 autograder).  But if you wrote the tests and you see FAILED, then you most
 definitely have a problem.
 
-## Groupwork Plan
+# Buggy implementation
+
+Please try the following if you want to try running the buggy implementation
+yourself to see what the bugs are.
+
+   1) Output after injecting bug into real object: Since a real object used in
+your test becomes buggy, the test case that uses that real object should fail.
+
+      Try running the following:
+
+      ```
+      java -jar libs\game-of-life-buggy-1.0-SNAPSHOT.jar 5 real
+      ```
+
+      And then create the vertical bar pattern.  Then, try pressing the "Write"
+   button and then the "Load" button.  You will be surprised!
+
+   2) Output after injecting bug into mocked object: Since the code in a mocked
+object is not exercised, the injected bug should have no effect and again, the
+expected output is:
+
+      Try running the following:
+
+      ```
+      java -jar libs\game-of-life-buggy-1.0-SNAPSHOT.jar 5 mock
+      ```
+
+      And then try running the simulation after creating the vertical bar pattern.  Something is not quite right...
+
+   3) Output after injecting bug in method checked by behavior verification:
+The method that does behavior verification should fail.
+
+      Try running the following:
+
+      ```
+      java -jar libs\game-of-life-buggy-1.0-SNAPSHOT.jar 5 behavior
+      ```
+
+      Again, try running the simulation after creating the vertical bar pattern.  This is even stranger.
+
+# Groupwork Plan
 
 Just like for Exercise 4, each of you should use VisualVM to profile the
 application and come up with the three methods to refactor.  Note that unlike
@@ -366,7 +388,7 @@ focus more on refactoring, and vice versa, the partner that focused more on
 implementation for Deliverable 2 should now focus more on the pinning tests.
 The goal is for both of you to have a balanced set of experiences.
 
-## Resources
+# Resources
 
 * VisualVM Download:
 https://visualvm.github.io/download.html
