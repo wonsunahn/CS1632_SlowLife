@@ -15,12 +15,11 @@
 - [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Summer Semester 2022
+Fall Semester 2022
 
-* DUE: August 2 (Tuesday), 2022 11:30 AM
-* Last day of late submission: August 5, 2022 11:30 AM
+* DUE: November 4 (Friday), 2022 11:59 PM
 
-**GitHub Classroom Link:** https://classroom.github.com/a/llr7jcMA
+**GitHub Classroom Link:** TBD
 
 ## Description
 
