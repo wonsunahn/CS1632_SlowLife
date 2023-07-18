@@ -1,240 +1,380 @@
-- [CS 1632 - Software Quality Assurance](#cs-1632-software-quality-assurance)
+- [Exercise 4 Performance Testing Exercise](#exercise-4-performance-testing-exercise)
+  * [Before You Begin](#before-you-begin)
   * [Description](#description)
-  * [How to Run SlowLifeGUI](#how-to-run-slowlifegui)
-  * [What do do](#what-do-do)
-    + [Task 1: Profile using VisualVM](#task-1-profile-using-visualvm)
-    + [Task 2: Write Pinning Tests for the Three Methods](#task-2-write-pinning-tests-for-the-three-methods)
-    + [Task 3: Refactor the Three Methods](#task-3-refactor-the-three-methods)
-    + [Task 4: Rerun Profiles for the Three Methods](#task-4-rerun-profiles-for-the-three-methods)
-  * [Report Format](#report-format)
-- [Grading](#grading)
+  * [MonkeySim Requirements](#monkeysim-requirements)
+  * [How to Run MonkeySim](#how-to-run-monkeysim)
+  * [What to do](#what-to-do)
+    + [Profile to Find Candidate Methods](#profile-to-find-candidate-methods)
+    + [Refactor Candidate Methods](#refactor-candidate-methods)
+    + [Rerun Profile for Refactored Methods](#rerun-profile-for-refactored-methods)
+    + [Run Pinning Tests for Candidate Methods](#run-pinning-tests-for-candidate-methods)
 - [Submission](#submission)
 - [GradeScope Feedback](#gradescope-feedback)
-  * [Buggy implementation](#buggy-implementation)
 - [Groupwork Plan](#groupwork-plan)
 - [Resources](#resources)
 
-# CS 1632 - Software Quality Assurance
-Summer Semester 2023
+# Exercise 4 Performance Testing Exercise
+Summer Semester 2023 - Exercise 4
 
-* DUE: August 1 (Tuesday), 2023 before start of class
+* DUE: July 20 (Tuesday), 2023 11:30 AM
 
-**GitHub Classroom Link:** https://classroom.github.com/a/Gukrf7KI
+**GitHub Classroom Link:** https://classroom.github.com/a/5BJjxKqr
+
+## Before You Begin
+
+Let's start by downloading the VisualVM Java profiler from:
+https://visualvm.github.io/
+
+Please click on the download link at the top of the project page.  Keep the
+download running as you read the below instructions and install it when it
+is ready.
 
 ## Description
 
-For this assignment, your group will profile a Conway's Game of Life
-simulation, and improve its performance by refactoring several methods (to be
-determined by the results of the profiling).  The program is assumed to be
-functionally correct.  It's only problem is that certain features are too slow.
-This will consist of the following steps for each method, as we discussed in
-Exercise 4:
+For this exercise, you will test and improve the performance of a monkey
+simulation software.  When you are asked to improve the performance of any
+code, how would you go about it?  Maybe you will start eyeballing the code to
+guess where the program is wasting a lot of its time and try to refactor the
+code that way.  But what if your code base is millions of lines long?  Talk
+about finding a needle in a haystack.  We will learn to use a technique called
+profiling that takes all the guesswork out of the picture.
 
-1. Profiling to determine the most CPU-intensive method that is suboptimal.
-1. Adding method pinning tests to guard against unintended changes to functionality.
-1. Refactoring the method to make it more performant.
-1. Verifying that the pinning tests you added still pass.
-1. Profiling again to confirm that your refactored method is now performant.
+Profiling is a form of dynamic program analysis where data is collected
+during runtime of a program, usually for the purposes of performance
+optimization.  The data is typically collected through some form of
+instrumentation on the program code, where extra instructions are inserted
+specifically for the purposes of monitoring the program while it runs and
+collecting data.  For Java, this instrumentation happens at the bytecode
+level.  For example, if the profiler wanted to measure how long a method
+takes to execute, it may do instrumentation similar to the following:
+
+```
+void foo() {
+  ___instrumentMethodBegin("foo");
+  // body of foo()
+  ___instrumentMethodEnd("foo");
+}
+
+void ___instrumentMethodBegin(String method) {
+  beginTime = ___getTime();
+}
+
+void ___instrumentMethodEnd(String method) {
+  endTime = ___getTime();
+  duration = endTime - beginTime;
+  ___addToMethodRunningTime(method, duration);
+}
+```
+
+But enough of profiling theory, how do I actually use it?  Performance
+debugging through profiling is an iterative process.  On each iteration, you
+will do the following:
+
+1. Profile the program.  Sort all methods in descending order of CPU utilization and
+   search for refactoring opportunities starting from the top.
+1. Refactor selected method to be more performant (being careful not to change functionality using pinning tests).
+1. Profile again to determine whether you made enough improvement, otherwise go back to 1.
+
+In this way, on each iteration, you will be able to focus on the method that
+has the most potential for improvement.  It is important to profile at the
+beginning of each iteration to get the most up-to-date profile since the
+last refactoring may have had non-local effects (impacted the performance of
+other methods besides the method refactored).
 
 The code is available under the src/ directory.
 
-## How to Run SlowLifeGUI
+## MonkeySim Requirements
 
-First let's invoke the Maven compile phase to generate the class files:
+Sample runs are shown in the [sample_runs.txt](sample_runs.txt) file.  Note
+that I used the **time** utility to measure response time of the application.
+For certain arguments such as 27, it takes more than half an hour to complete!
+There is obviously something wrong with the implementation that is slowing down
+the program.  It is your job to use VisualVM to measure the CPU utilization of
+each method to zoom in on the methods that are the culprits!
+
+For those of you who are interested, MonkeySim is a simulation of the Collatz
+Conjecture (https://en.wikipedia.org/wiki/Collatz_conjecture).  In summary,
+given the following rules:
+
+* There are infinite monkeys numbered #1, #2, #3, etc., and one banana.
+
+* One of the monkeys is in possession of the banana initially.
+
+* The monkey who has the banana shall throw it to another monkey during each round.
+
+* If a monkey is even-numbered (e.g., monkey #2, monkey #4, etc.), then the
+  monkey with the banana shall throw the banana to the monkey equal to one-half
+of that initial monkey's number `(n / 2)`.  For example, monkey #4 shall throw
+the banana to monkey #2, and monkey #20 shall throw the banana to monkey #10.
+
+* If a monkey is odd-numbered (and not monkey #1), the monkey with the banana
+  shall throw it to the monkey equal to three times the number of that monkey
+plus one `(3n + 1)`.  For example, monkey #5 shall throw the banana to monkey
+#16 `((3 * 5) + 1)`.
+
+* If Monkey #1 receives the banana, the game terminates.
+
+The conjecture is that no matter which monkey initially has the banana, Monkey
+#1 will eventually catch the banana in a finite amount of time.  Nobody has
+been able to find an initial monkey which behaves otherwise, but nobody has
+been able to prove that such a monkey does not exist either (which is why it is
+called a conjecture)!
+
+Now, in the process of optimizing this code, it is important that you do not
+break its functionality.  Unfortunately, this is legacy code and the
+requirements document that specify its functionality were lost (or never
+written to begin with!).  But you do know that there are lots of users and
+dependent software that rely on the correct functioning of MonkeySim, whatever
+it is.  What to do?  The safe course of action is to change nothing and nothing
+at all in terms of functionality.  In order to guarantee this, you need to
+write pinning tests that pin down existing behavior.  For the exercise, I did
+this on your behalf as a demonstration and named the JUnit test
+**MonkeySimPinningTest.java**.  All you need to do for the exercise is to run the
+test suite every time you refactor the code to make sure you didn't break
+anything.  Considerations when writing the pinning tests are detailed in the
+pinning test section below.
+
+## How to Run MonkeySim
+
+Let's first invoke the Maven compile phase to generate class files:
 
 ```
 mvn compile
 ```
 
-Then let's invoke the GameOfLife main method as such:
+Maven generates class files under target/classes.  Please invoke MonkeySim
+under that classpath with the example argument 4 replaced by your desired
+starting monkey number:
 
 ```
-java -cp target/classes edu.pitt.cs.GameOfLife 10
+java -cp target/classes edu.pitt.cs.MonkeySim 4
 ```
 
-The argument 10 is the dimensions of the world to generate.  This will generate
-a matrix of 10 X 10 cells.
+## What to do
 
-Now if you want to test the implementation using GameOfLifePinningTest.java,
-you can invoke the Maven test phase as before:
+
+### Profile to Find Candidate Methods
+
+In order to determine the "hot spots" of the application, you will need to run
+a profiler such as VisualVM.  Using the profiler, determine a method you can
+modify to measurably increase the speed of the application without modifying
+behavior.
+
+Please run the below commandline for profiling purposes.
+
+```
+java -cp target/classes edu.pitt.cs.MonkeySim 23
+```
+
+I will demonstrate how to profile in class, but if you need a refresher here
+are two helpful guides:
+
+Overview of VisualVM: https://docs.oracle.com/javase/8/docs/technotes/guides/visualvm/applications_local.html
+
+Guide to using Profiling: https://docs.oracle.com/javase/8/docs/technotes/guides/visualvm/profiler.html
+
+Some tips when using VisualVM:
+
+1. Your Java app will only show up in VisualVM **during execution**.  When the
+   MonkeySim application shows up on the left panel, you need to quickly double
+click on the MonkeySim application and then click on the Profiler tab.  Then,
+on the Profiler window that shows up on the main pane, quickly click on the CPU
+button to start profiling CPU utilization.  
+
+1. No matter how quick you are in starting profiling, you will have missed a
+   few seconds of program execution in the beginning.  To capture the entirety
+of execution please insert a 30 second sleep() at the beginning of the main()
+method, during which you can perform these actions.  For example:
+
+   ```
+   try {
+      Thread.sleep(30000);
+   } catch (InterruptedException iex) {
+   }
+   ```
+
+   If you are able to attach VisualVM within the 30 seconds, all methods
+would be instrumeted with time measuring instructions by the time the
+program resumes.
+
+You will see that profile information continues to get collected as the program
+is running.  Snapshots allow you to freeze the profile at a certain point of
+time so that you can analyze it later.  You can also save a snapshot to a file
+for later analysis.  Please review the below guide:
+
+Using Snapshot feature: https://docs.oracle.com/javase/8/docs/technotes/guides/visualvm/snapshots.html
+
+VisualVM automatically asks whether to take a snapshot at the end of program
+execution.  In our case, we want to profile the entire run, so we will wait
+until the end to generate a snapshot.
+
+After opening the snapshot tab, click on the "Hot spots" button to get a list
+of hot spot methods.  Make sure the "Hot spots" view lists the methods sorted
+in descending order of running time (Self Time).  Now let's try saving the hot
+spots list to a file.  You can export by clicking on the down arrow beside the
+save button (that looks like a floppy disk) to pull down the menu and then
+clicking on "Export Hotspots".  You are given an option between CSV, HTML, XML,
+and PNG.  Choose the PNG option and save to a file named
+**hotspots-before.png**.  Refer to the below figure while following these
+instructions.
+
+![alt text](VisualVM_profiling.png "Using VisualVM profiler")
+
+The exported hotspots-before.png file should look like the following:
+
+![alt text](hotspots-before-demo.png "Hotspots panel after optimizations")
+
+The exact runtimes will be different for you since we are running on different
+machines but the ranking should look similar.  I want you to refactor **four** of
+the most time consuming methods in MonkeySim, looking at the profile.
+
+Now, given a method such as getFirstMonkey, you may want to know in
+which context that method was called before starting optimization.  If you
+right click on one of the methods in the "Hot spots" methods list, you'll get a
+context menu.  If you click on a the "Find in Forward Calls" item, you can see
+the call tree that got you to that method.
+
+### Refactor Candidate Methods
+
+Now you are ready to modify the candidate method.  Remember, the program should
+work EXACTLY the same as before, except it should be faster and take up less
+CPU time.  
+
+When refactorng the four methods, you should not change the behavior of any of
+the methods; only refactor the implementation so that they are more efficient.
+Three of the methods will be very straightforward because they contain
+obviously redundant computation.
+
+One method (generateId) is less straightforward.  All the computation seems
+necessary to generate the monkey IDs that are displayed in the output.  Naively
+removing the ID generation will result in a different output.  Hint: Do we
+really need to generate all those IDs for the output?
+
+Make sure that all the pinning tests pass after you are done.
+
+### Rerun Profile for Refactored Methods
+
+Now that you are done optimizing, rerun the profile again with the same
+argument and see if you made a satisfactory difference:
+
+```
+java -cp target/classes edu.pitt.cs.MonkeySim 23
+```
+
+Repeat the steps described above to generate a new hot spots list named
+**hotspots-after.png**. This is what I got after optimizing:
+
+![alt text](hotspots-after-demo.png "VisualVM snapshot after optimizations")
+
+Note that I achieved marked improvement for all four candidate methods.  You
+should see similar improvements.  If you do, this is when you pat yourself on
+the back and declare victory.
+
+### Run Pinning Tests for Candidate Methods
+
+After refactoring a candidate method to improve performance, you need a
+guarantee that the functional behavior of the program did not change due to the
+refactoring.  We learned that writing pinning tests and running them after
+every code change is a way of guaranteeing this.  Lucky for you, I have already
+wrote a set of pinning tests for you in the file **MonkeySimPinningTest.java**
+using JUnit.  You can run them as part of the Maven test lifecycle phase as
+before:
 
 ```
 mvn test
 ```
 
-## What do do
-
-The program is an implementation of Conway's Game of Life
-(https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).  You can change the
-state of a cell (from living to dead) by clicking on one of the buttons.  Cells
-which are currently alive have an X and a red background; cells that are dead
-now, but were at any point alive during the current run, will have a green
-background.
-
-There are several other buttons which invoke different features:
-
-1. Run - this will run one iteration of the Game of Life
-2. Run Continuous - This will run iterations until you press the Stop button.
-3. Stop - This will stop the current "Run Continuous" run.  It will have no effect if the program is not running continuously already.
-4. Write - This will write the state of the system to a backup file, to be loaded later.
-5. Undo - This will undo the previous iteration.  It will only work for one iteration (that is, you cannot do multiple undos to get back multiple iterations).
-6. Load - This will load a previously-saved backup file (created using the Write button) to the current world.
-7. Clear - This will clear the current world.
-
-### Task 1: Profile using VisualVM
-
-For the purposes of performance testing, we will focus on a 5 X 5 world.  For
-the initial pattern, we will use the "blinker" pattern shown in:  
-
-https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Examples_of_patterns  
-
-The actual pattern GIF is at:  
-
-https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#/media/File:Game_of_life_blinker.gif  
-
-We will start from the vertical bar on a 5 X 5 matrix as shown in the GIF: For
-an actual full performance test suite, we would have to try multiple world
-sizes and multiple patterns but for the purposes of this deliverable, we will
-focus on performance debugging only the above scenario.  As it happens, once we
-debug the above scenario, the application will start running quickly for all
-scenarios.
-
-Let's start by creating a 5 X 5 world:
+Make sure they pass with output like the following:
 
 ```
-java -cp target/classes edu.pitt.cs.GameOfLife 5
+...
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running edu.pitt.cs.MonkeySimPinningTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.755 sec
+
+Results :
+
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+...
 ```
 
-Now click on the appropriate cells to create the vertical bar pattern.
+The tests pass with the original MonkeySim, obviously because the pinning tests
+were based on the existing behavior of MonkeySim to begin with.  Your job is to
+make sure that they stay that way while refactoring.
 
-There are exactly **THREE** major performance issues with **THREE** methods in
-the code.  They could be in any feature of the program!  I recommend you try
-exploratory testing to try out different features to determine which features
-may have performance problems before profiling the application.  There are
-**TWO** features that have problems out of the 6 features listed above (if you
-count "Run" and "Run Continuous" as the same feature).  Each feature can be
-invoked by pressing the corresponding button at the bottom panel.  The three
-performance problems are dispersed in those two features.
+Now let's look at the @Before setUp() method in MonkeySimPinningTest.java
+because there a few interesting things to note there:
 
-In order to determine the "hot spots" of the application, you will need to run
-VisualVM.  Using the profiler, determine the THREE methods you can modify to
-measurably increase the speed of the application without modifying behavior.
-Refer to Exercise 4 for a detailed explanation of how to use VisualVM to
-profile an application.
+1. Note how I redirected the output stream for testing purposes:
 
-You need to collect profiles for each individual feature.  For Exercise 4,
-the only feature was to run MonkeySim from the commandline.  In this
-application, there are 6 different features you need to test.  If you take a
-snapshot of the profile at the very end of execution after having tried out
-all 6 features, just like you did for the exercise, you will not be able to
-tell which feature has a performance problem.  Instead, create 6 individual
-snapshots for the 6 features and analyze them separately.  Once you are done
-profiling a feature, press the "Reset" button on VisualVM to clear the
-profile before moving on to the next feature.  You should be able to find
-the 2 problematic features relatively easily (the slow methods have pretty
-glaring performance problems).  Save the hot spots list for each of the two
-features in these two files: **hotspots-feature1-before.png** and
-**hotspots-feature2-before.png**.
+    ```
+    // Back up the old output stream
+    stdout = System.out;
+    // Redirect the output stream
+    System.setOut(new PrintStream(out));
+    ```
 
-### Task 2: Write Pinning Tests for the Three Methods
+    This was done to be able to test system output.  In the last test
+testArgument5RunSimulation(), lines printed to the screen using
+System.out.println can now be compared to a String.  I also made sure I
+restored the original output stream in the @After teadDown() method:
 
-Before doing refactoring any method, you should create "pinning tests" (as
-described in the section on legacy code earlier - please review the slides on
-Writing Testable Code if you need a refresher).  These pinning tests should
-check that the behavior of a modified method was not changed by your refactor.
-The methods should work EXACTLY the same as before, except they should be
-faster and take up less CPU time.  **There should be at least one pinning test
-per method refactored.**
+    ```
+    System.setOut(stdout);
+    ```
 
-In general, a pinning test doesn't necessarily have to be a unit test; it can
-be an end-to-end test that you slap on quickly for the purposes of refactoring
-(without spending the effort to localize tests by mocking external objects).
-The end-to-end pinning test is then gradually refined into more high quality
-unit tests. Sometimes this 2-step process is necessary because sometimes you
-cannot write high quality unit tests before refactoring to make the code more
-testable (e.g. via dependency injection).  So you need a temporary end-to-end
-pinning test to protect the code base meanwhile.  For this deliverable, there
-is no reason you cannot write **unit tests** from the get-go for pinning tests
-as the dependency injection(s) has already been done for you.  
+    Please read textbook Chapter 14.6 Testing System Output, for further
+explanation.
 
-Here are some requirements for your pinning tests:
+1. Note how I used Java Reflection to force reset Monkey.monkeyNum, which is a
+   private static field, to 0:
 
-1. You will use the 5 X 5 blinker pattern that I described above when a pattern
-   is required:
+    ```
+    Field f = Monkey.class.getDeclaredField("monkeyNum");
+    f.setAccessible(true);
+    f.set(null, 0);
+    ```
 
-   https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#/media/File:Game_of_life_blinker.gif  
+    Previously, we have called private methods, but this is the first time we
+accessed a private field.  The field is first made accessible and then set to 0.
+The first instance argument in f.set(null, 0) is null because this is a
+static field and there is no instance.  Please see textbook Chapter 24
+Using Reflection to Test Private Methods in Java, for related material.
 
-   The vertical bar pattern should be your precondition and the next horizontal
-bar pattern should be your postcondition.  **For the postcondition, make sure you
-check all 25 cells in the 5 X 5 pattern**.
+    Legacy code is often not written with ease-of-testing in mind and the same
+goes for this one.  Monkey.monkeyNum is the monkey number assigned to a newly
+created monkey and is incremented by one each time so that each monkey in the
+list will get a monotonically increasing number.  The developer did not think
+to put in a method to be able to reset Monkey.monkeyNum to 0, because it's not
+needed for the program itself as the monkey list is only created once.  But in
+a test scenario, we need to constantly reset Monkey.monkeyNum to 0 as we
+repeatedly recreate the list of monkeys in our setUp() method.  So we are
+forced to use Java reflection to force reset that number.
 
-1. You are required to localize each pinning unit test within the tested class
-   as we did for Deliverable 2 (meaning it should not exercise any code from
-external classes). You will have to use Mockito mock objects to achieve this.
+1. Note how I used real objects instead of mocked objects, even for external
+   classes when I initialized the test fixture.  You may ask: isn't this
+against all we learned about unit testing?  Are we not de facto testing large
+parts of the system beyond the unit by not mocking and stubbing?  Yes,
+absolutely!  In fact, I made the conscious choice of doing integration testing
+instead of unit testing for the pinning tests.  This is often done when you
+receive legacy code without any unit testing infrastructure.  Rather than look
+for "seams" in the code to construct unit tests and emulating behavior of
+mocked objects, which is time consuming, end-to-end systems tests are slapped
+on for the purposes of pinning down existing behavior, which is much easier.
+Eventually, unit pinning tests are added into the mix, by finding seams or
+potentially modifying the code to create seams using dependency injection and
+other techniques.  But when code modification is performed, it is done under
+the cover of systems pinning tests so any divergence in system behavior would
+be detected.
 
-1. Also, you may have to use behavior verification instead of state
-   verification to test some methods because the state change happens within a
-mocked external object.  Remember that you can use behavior verification only
-on mocked objects (technically, you can use Mockito.verify on real objects too
-using something called a Spy, but you won't need it for this deliverable).  You
-will get point deductions if you don't use mock objects and behavior
-verification appropriately.
-
-1. Note that even though the class is named GameOfLifePinningTest, the methods
-   you test will not necessarily come from the GameOfLife class.  You will
-create whatever objects from whatever classes are necessary to test the three
-refactored methods.  Hint: there is no reason for you to create a GameOfLife
-object as there are no methods that you need to refactor there.
-
-You will write all your pinning tests in the class GameOfLifePinningTest by
-completing the TODOs.  Please heed the comments.  
-
-### Task 3: Refactor the Three Methods
-
-Now refactor the three methods so that they are no longer performance problems.
-If you look carefully, the three methods do a lot of wasted work for no reason.
-It should be easy to refactor my removing that work.  Make sure that your
-pinning tests pass after refactoring.
-
-### Task 4: Rerun Profiles for the Three Methods
-
-Save the hot spots list for each of the two optimized features in these two
-files: **hotspots-feature1-after.png** and **hotspots-feature2-after.png**.
-You should see a significant improvement over the initial profile.
-
-## Report Format
-
-Please use the [ReportTemplate.docx](ReportTemplate.docx) file provided in this
-directory to write a short report.  A PDF version of the file is at
-[ReportTemplate.pdf](ReportTemplate.pdf).
-
-The report should have a title page with:
-* Your name(s)
-
-ON YOUR FIRST PAGE, please write a brief introduction on any issues you may
-have had with VisualVM and also a division of work between partners.
-
-ON A SEPARATE PAGE, write a brief report on the first feature you optimized.
-Write the name of the feature, the methods you refactored, and a VisualVM
-export of method "Hot spots" before and after refactoring.  Please refer to
-Exercise 4 on how the Hot spots export file looks like.
-
-ON A SEPARATE PAGE, do the same for the second feature optimized.
-
-# Grading
-
-* Report - 10%
-* Performance tests on your optimized methods (autograder) - 45%
-* Pinning tests on your optimized methods (autograder) - 15%
-* Your pinning tests against your implementation (autograder) - 15%
-* Whether you implemnted your pinning tests correctly (manual grading with autograder feedback) - 15%
-
-Please read [grading_rubric.txt](grading_rubric.txt) before submitting!
-
-Note that 75% of your grade (besides the report) will be graded by GradeScope
-autograding.  However, adjustments to your autograded score may follow if you
-make a bad faith attempt at tricking the autograder (e.g. write a pinning test
-that does not properly test the method you are refactoring).
+    For Deliverable 4, I will ask **you** to write pinning tests yourself.  And
+for these pinning tests, I'm going to ask you to write unit pinning tests.
 
 # Submission
 
@@ -245,140 +385,59 @@ corner of the assignment page after submission to add his/her partner.
 The submission is divided into two parts:
 
 1.  Submit the repository created by GitHub Classroom for your team to
-    GradeScope at the **Deliverable 4 GitHub** link.  Once you submit,
-GradeScope will run the autograder to grade you and give feedback.  If you get
-deductions, fix your code based on the feedback and resubmit.  Repeat until you
-don't get deductions.
+    GradeScope at the **Exercise 4 GitHub** link.  Once you submit, GradeScope
+will run the autograder to grade you and give feedback.  If you get deductions,
+fix your code based on the feedback and resubmit.  Repeat until you don't get
+deductions.
 
-1. Submit your report to GradeScope at the **Deliverable 4 Report** link.
+1. Please use the [ReportTemplate.docx](ReportTemplate.docx) file provided in
+   this directory to write a short report.  A PDF version of the file is at
+[ReportTemplate.pdf](ReportTemplate.pdf).  On the first page, attach
+hotspots-before.png generated before refactoring.  On the second page, attach
+hotspots-after.png generated after refactoring.  Submit the report to
+GradeScope at the **Exercise 4 Report** link.  
 
 # GradeScope Feedback
 
 It is encouraged that you submit to GradeScope early and often.  Please use the
-feedback you get on each submission to improve your code!
+feedback you get on each submission to improve your code!  All the tests have
+been performed after having called the @Before setUp() method which sets up the
+test fixture with Monkey #5 having the banana initially (just like when
+argument 5 has been passed on the commandline).
 
-The GradeScope autograder works in 3 phases:
+The GradeScope autograder works in 2 phases:
 
-1. GameOfLife method performance tests (45.0):
+1. MonkeySim method pinning tests
 
-   I run performance tests on each of the three methods you should
-optimize.  If any of those methods time out after 10 ms, you get a -15
-deduction.
+   These are the JUnit pinning tests in MonkeySimPinningTest applied to Monkey
+sim.  They all pass with the original MonkeySim and they should stay that way.
 
-1. GameOfLife method pinning tests (15.0):
+1. MonkeySim method performance tests
 
-   I run my own pinning tests on each of the three methods you should
-optimize.  These pinning tests pass without you having to do anything
-(obviously because they are meant to test existing behavior of legacy code).
-And they should stay that way.  If any of the pinning tests fail, you get a
--5 deduction.
-
-1. GameOfLifePinningTest method tests (15.0):
-
-   I run the pinning tests you wrote (GameOfLifePinningTest) on your
-implementation.  If any of the pinning tests fail, you get a -5 deduction.
-
-1. GameOfLifePinningTest Mocking and Behavior Verification (0.0):
-
-   This section gives you feedback on whether you did proper mocking and
-behavior verification.  It does three test runs using your
-GameOfLifePinningTest:
-
-   1) Output after injecting bug into real object: Since a real object used in
-your test becomes buggy, the test case that uses that real object should fail.
-
-   2) Output after injecting bug into mocked object: Since the code in a mocked
-object is not exercised, the injected bug should have no effect and again, the
-expected output is:
-
-      ```
-      --------------------------------------------------------------------
-      ALL TESTS PASSED
-      --------------------------------------------------------------------
-      ```
-
-   3) Output after injecting bug in method checked by behavior verification:
-The method that does behavior verification should fail.
-
-      If all goes well, you should see the followimg lines at the end of this section:
-
-      ```
-      PASSED (5/5): Bug injected into real object caused test failures (as it should).
-      PASSED (5/5): Bug injected into mocked object did not cause test failures.
-      PASSED (5/5): Behavior verification correctly detected change in behavior.
-      ```
-
-      If you see FAILED (0/5) instead, you need to fix your tests.  The buggy
-implementation with the injected bugs has been included in the repository if
-you want to see what the bugs are with your own eyes (see below).
-
-      CAVEAT: Just because you got PASSED on all three, it does not mean that you
-are guaranteed to get points for that rubric item.  You may have passed simply
-because you did not yet write the relevant test!  So in the end, points will be
-assigned through manual grading (hence the 0 points assigned in the
-autograder).  But if you wrote the tests and you see FAILED, then you most
-definitely have a problem.
-
-## Buggy implementation
-
-Please try the following if you want to try running the buggy implementation
-yourself to see what the bugs are.
-
-   1) Output after injecting bug into real object: Since a real object used in
-your test becomes buggy, the test case that uses that real object should fail.
-
-      Try running the following:
-
-      ```
-      java -jar libs\game-of-life-buggy-1.0-SNAPSHOT.jar 5 real
-      ```
-
-      And then create the vertical bar pattern.  Then, try pressing the "Write"
-   button and then the "Load" button.  You will be surprised!
-
-   2) Output after injecting bug into mocked object: Since the code in a mocked
-object is not exercised, the injected bug should have no effect and again, the
-expected output is:
-
-      Try running the following:
-
-      ```
-      java -jar libs\game-of-life-buggy-1.0-SNAPSHOT.jar 5 mock
-      ```
-
-      And then try running the simulation after creating the vertical bar pattern.  Something is not quite right...
-
-   3) Output after injecting bug in method checked by behavior verification:
-The method that does behavior verification should fail.
-
-      Try running the following:
-
-      ```
-      java -jar libs\game-of-life-buggy-1.0-SNAPSHOT.jar 5 behavior
-      ```
-
-      Again, try running the simulation after creating the vertical bar pattern.  This is even stranger.
+   These are JUnit tests that I wrote to see if you made improvements on the
+four most time consuming methods in MonkeySim.  I set a timeout of 10 ms for
+each of them and if you don't complete the task within that amount of time, the
+test fails.  I also test the entire program using runSimulation() after setting
+up the monkey list to begin with monkey #5.  The simulation has a timeout of
+300 ms.  You could potentially try to glean the time consuming methods from
+looking at the methods that I test, but please don't do that.  See if you can
+extract that information from the VisualVM tool.  The test output will not be
+so revealing on your deliverable!
 
 # Groupwork Plan
 
-Just like for Exercise 4, each of you should use VisualVM to profile the
-application and come up with the three methods to refactor.  Note that unlike
-Exercise 4, there are many more features for this program so it is going to be
-slightly harder to find the methods.  After you are done, compare the three
-methods, discuss, and agree upon the final three.
-
-Next, split the refactoring and testing of the three methods between the two of
-you.  The partner that focused more on testing for Deliverable 2 should now
-focus more on refactoring, and vice versa, the partner that focused more on
-implementation for Deliverable 2 should now focus more on the pinning tests.
-The goal is for both of you to have a balanced set of experiences.
+I expect each group member to try running VisualVM and experience profiling
+for him/herself.  I created individual repositories for each of you, so
+optimize your own code afrer profiling.  After both of you are done, compare
+the four methods that each of you optimized.  Discuss, resolve any
+differences, and submit.
 
 # Resources
 
-* VisualVM Download:
+* VisualVM Download:  
 https://visualvm.github.io/download.html
 
-* VisualVM Documentation:
+* VisualVM Documentation:  
 https://visualvm.github.io/documentation.html
 
 Method profiling is not the only thing that VisualVM knows how to do.  It can
@@ -392,8 +451,8 @@ In the unlikely case you can't find what you are looking for in existing
 profilers, you can even write your own profiler using the Java Virtual Machine
 Tool Interface (JVMTI).  JVMTI is what was used to build VisualVM.
 
-* Creating a Debugging and Profiling Agent with JVMTI
+* Creating a Debugging and Profiling Agent with JVMTI  
 https://www.oracle.com/technical-resources/articles/javase/jvmti.html
 
-* JVMTI Reference
+* JVMTI Reference  
 https://docs.oracle.com/javase/8/docs/platform/jvmti/jvmti.html
