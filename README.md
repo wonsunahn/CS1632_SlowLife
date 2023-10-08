@@ -15,11 +15,11 @@
 - [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Summer Semester 2023
+Fall Semester 2023
 
-* DUE: August 1 (Tuesday), 2023 before start of class
+* DUE: October 30 (Tuesday), 2023 before start of class
 
-**GitHub Classroom Link:** https://classroom.github.com/a/Gukrf7KI
+**GitHub Classroom Link:** TBD
 
 ## Description
 
