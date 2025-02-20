@@ -15,9 +15,9 @@
 - [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Fall Semester 2024
+Spring Semester 2025
 
-* DUE: November 4 (Monday), 2024 before start of class
+* DUE: March 25 (Tuesday), 2025 before start of class
 
 **GitHub Classroom Link:** TBD
 
