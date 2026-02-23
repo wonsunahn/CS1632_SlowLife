@@ -15,9 +15,9 @@
 - [Resources](#resources)
 
 # CS 1632 - Software Quality Assurance
-Fall Semester 2025
+Spring Semester 2026
 
-* DUE: November 3 (Monday), 2025 before start of class
+* DUE: March 24 (Tuesday), 2026 before start of class
 
 **GitHub Classroom Link:** TBD
 
@@ -201,25 +201,6 @@ pinning tests pass after refactoring.
 Save the hot spots list for each of the two optimized features in these two
 files: **hotspots-feature1-after.png** and **hotspots-feature2-after.png**.
 You should see a significant improvement over the initial profile.
-
-## Report Format
-
-Please use the [ReportTemplate.docx](ReportTemplate.docx) file provided in this
-directory to write a short report.  A PDF version of the file is at
-[ReportTemplate.pdf](ReportTemplate.pdf).
-
-The report should have a title page with:
-* Your name(s)
-
-ON YOUR FIRST PAGE, please write a brief introduction on any issues you may
-have had with VisualVM and also a division of work between partners.
-
-ON A SEPARATE PAGE, write a brief report on the first feature you optimized.
-Write the name of the feature, the methods you refactored, and a VisualVM
-export of method "Hot spots" before and after refactoring.  Please refer to
-Exercise 4 on how the Hot spots export file looks like.
-
-ON A SEPARATE PAGE, do the same for the second feature optimized.
 
 # Grading
 
