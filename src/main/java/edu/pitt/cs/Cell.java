@@ -29,7 +29,17 @@ public class Cell extends JButton {
 
 	public void reset() {
 		resetBeenAlive();
-		setAlive(false);
+
+		String toReturn = new String("");
+		String currentState = getText();
+		for (int j = 0; j < maxSize; j++) {
+			toReturn += currentState;
+		}
+		if (toReturn.substring(0, 1).equals("X")) {
+			setAlive(!getText().equals("X"));
+		} else {
+			setAlive(getText().equals("X"));
+		}
 	}
 
 	public boolean getAlive() {
@@ -38,16 +48,7 @@ public class Cell extends JButton {
 	}
 
 	public String toString() {
-		String toReturn = new String("");
-		String currentState = getText();
-		for (int j = 0; j < maxSize; j++) {
-			toReturn += currentState;
-		}
-		if (toReturn.substring(0, 1).equals("X")) {
-			return toReturn.substring(0, 1);
-		} else {
-			return ".";
-		}
+		return getText().equals("X") ? "X" : ".";
 	}
 
 	public void setAlive(boolean a) {
