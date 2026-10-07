@@ -20,18 +20,11 @@ public class GameOfLifePinningTest {
 	 * testable (e.g. dependency injection), and you need a temporary end-to-end
 	 * pinning test to protect the code base meanwhile.
 	 * 
-	 * For this deliverable, there is no reason you cannot write unit tests for
-	 * pinning tests as the dependency injection(s) has already been done for you.
+	 * For this exercise, there is no reason you cannot write unit tests for
+	 * pinning tests as the dependency injection(s) have already been done for you.
 	 * You are required to localize each pinning unit test within the tested class
-	 * as we did for Deliverable 2 (meaning it should not exercise any code from
+	 * as we did for Exercise 2 (meaning it should not exercise any code from
 	 * external classes). You will have to use Mockito mock objects to achieve this.
-	 * 
-	 * Also, you may have to use behavior verification instead of state verification
-	 * to test some methods because the state change happens within a mocked
-	 * external object. Remember that you can use behavior verification only on
-	 * mocked objects (technically, you can use Mockito.verify on real objects too
-	 * using something called a Spy, but you wouldn't need to go to that length for
-	 * this deliverable).
 	 */
 
 	/* TODO: Declare all variables required for the test fixture. */
